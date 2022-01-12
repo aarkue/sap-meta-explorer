@@ -44,6 +44,7 @@
 					<option value="o2c" selected="selected">Order-to-Cash</option>
 					<option value="ap_ar">Accounts Payable/Receivable</option>
 					<option value="p2p">Procure-to-Pay</option>
+					<option value="prod">Production</option>
 				</select>
 				<br />
 				<div id="o2c" style="display:">
@@ -287,6 +288,75 @@
 									Company code: <input type="text" id="p2p_ocel_company_code" value="1000" /> <br />
 									<button onclick="javascript:showP2PErExplanation()">Show the explanation of the ER diagram</button><br />
 									<b>Helper utilities:</b><button onclick="javascript:p2pClient()">Show Statistics</button><br />
+									<b>Extraction utilities:</b><button onclick="javascript:extract()">Extract the Event Log</button>
+								</div>
+							</td>
+						</tr>
+					</table>
+					<div class="center" id="p2pErExplanation" style="display: none">
+						<p>In this part, we provide an explanation of the tables as shown in the ER diagram.</p>
+						<b>The tables <b>EKKO</b> (master table) and <b>EKPO</b> (detail table) contain the information about the purchase orders.</p>
+						<p>The table <b>EKBE</b> contains the goods receipts and the invoice receipts. Moreover, it puts purchase orders and invoices in relationship.</p>
+						<p>The tables <b>RBKP</b> (master table) and <b>RSEG</b> (detail table) contain the information on the invoices posting.</p>
+						<p>The tables <b>BKPF</b> (master table) and <b>BSEG</b> (detail table) contain the information on the payments. An invoice in RBKP is related to a document in BKPF.</p>
+						<p>The tables <b>CDHDR</b> (master table) and <b>CDPOS</b> (detail table) contain the information about changes happening in the purchase orders and invoices tables.</p>
+						<p>The tables <b>TSTCT</b> and <b>T003T</b> are technical tables (containing respectively the list of transactions and document types
+						of the system).</p>
+					</div>
+					<div class="center" id="p2pClientListContainer" style="display: none">
+						<p><b>P2P clients/company code/fiscal year/document types list (from the table RBKP)</p>
+						<div id="p2pClientList">
+						</div>
+					</div>
+				</div>
+				<div id="prod" style="display: none">
+					<p><b>Production</b></p>
+					<table border="0" style="width: 100%">
+						<tr>
+							<td style="width: 40%">
+								<img src="static/other.png" style="width: 682px">
+								</img>
+							</td>
+							<td style="width: 60%">
+								Extraction Type:
+								<select id="prod_ext_type" name="prod_ext_type" onchange="">
+									<!-- <option value="p2p_1d_dataframe">CSV log</option>
+									<option value="p2p_1d_log" selected="selected">XES log</option> -->
+									<option value="prod_ocel" selected="selected">Object-Centric Log</option>
+								</select>
+								<br />
+								<!-- <div id="prod_1d_dataframe" style="display: none">
+									<p>Insert the parameters for the CSV extraction:</p>
+									Central table for the extraction: <input type="text" id="p2p_csv_central_table" value="EKKO"></input> <br />
+									Minimum extraction date: <input type="text" id="p2p_csv_min_ext_date" value="2014-01-01 00:00:00" /> <br />
+									Fiscal year: <input type="text" id="p2p_csv_fiscal_year" value="2014" /> <br />
+									Client: <input type="text" id="p2p_csv_client" value="800" /> <br />
+									Company code: <input type="text" id="p2p_csv_company_code" value="1000" /> <br />
+									<button onclick="javascript:showP2PErExplanation()">Show the explanation of the ER diagram</button><br />
+									<b>Helper utilities:</b><button onclick="javascript:p2pClient()">Show Statistics</button><br />
+									<b>Extraction utilities:</b><button onclick="javascript:showProcessMap()">Show the Process Map</button>
+									<button onclick="javascript:extract()">Extract the Event Log</button>
+								</div>
+								<div id="p2p_1d_log" style="display: ">
+									<p>Insert the parameters for the XES extraction:</p>
+									Central table for the extraction: <input type="text" id="p2p_xes_central_table" value="EKKO"></input> <br />
+									Minimum extraction date: <input type="text" id="p2p_xes_min_ext_date" value="2014-01-01 00:00:00" /> <br />
+									Fiscal year: <input type="text" id="p2p_xes_fiscal_year" value="2014" /> <br />
+									Client: <input type="text" id="p2p_xes_client" value="800" /> <br />
+									Company code: <input type="text" id="p2p_xes_company_code" value="1000" /> <br />
+									<button onclick="javascript:showP2PErExplanation()">Show the explanation of the ER diagram</button><br />
+									<b>Helper utilities:</b><button onclick="javascript:p2pClient()">Show Statistics</button><br />
+									<b>Extraction utilities:</b><button onclick="javascript:showProcessMap()">Show the Process Map</button>
+									<button onclick="javascript:extract()">Extract the Event Log</button>
+								</div> -->
+								<div id="prod_ocel" style="display: ">
+									<p>Insert the parameters for the object-centric log extraction:</p>
+									Minimum extraction date: <input type="text" id="prod_ocel_min_ext_date" value="2014-01-01 00:00:00" /> <br />
+									Fiscal year: <input type="text" id="prod_ocel_fiscal_year" value="2014" /> <br />
+									Client: <input type="text" id="prod_ocel_client" value="800" /> <br />
+									Company code: <input type="text" id="prod_ocel_company_code" value="1000" /> <br />
+									<button onclick="javascript:showProdErExplanation()">Show the explanation of the ER diagram</button><br />
+									<b>Helper utilities:</b><button onclick="javascript:prodClient()">Show Statistics</button><br />
 									<b>Extraction utilities:</b><button onclick="javascript:extract()">Extract the Event Log</button>
 								</div>
 							</td>
@@ -596,16 +666,24 @@
 				document.getElementById("o2c").style.display = "";
 				document.getElementById("p2p").style.display = "none";
 				document.getElementById("ap_ar").style.display = "none";
+				document.getElementById("prod").style.display = "none";
 			}
 			else if (proc == "ap_ar") {
 				document.getElementById("o2c").style.display = "none";
 				document.getElementById("p2p").style.display = "none";
 				document.getElementById("ap_ar").style.display = "";
+				document.getElementById("prod").style.display = "none";
 			}
 			else if (proc == "p2p") {
 				document.getElementById("o2c").style.display = "none";
 				document.getElementById("p2p").style.display = "";
 				document.getElementById("ap_ar").style.display = "none";
+				document.getElementById("prod").style.display = "none";
+			}else if (proc == "prod") {
+				document.getElementById("o2c").style.display = "none";
+				document.getElementById("p2p").style.display = "none";
+				document.getElementById("ap_ar").style.display = "none";
+				document.getElementById("prod").style.display = "";
 			}
 		}
 		
@@ -706,6 +784,9 @@
 			else if (process == "p2p") {
 				ext_type = document.getElementById("p2p_ext_type").value;
 				ext_args = getP2Pparameters(ext_type);
+			}else if (process == "prod") {
+				ext_type = document.getElementById("prod_ext_type").value;
+				ext_args = getProdparameters(ext_type);
 			}
 			var obj = {};
 			obj["db_type"] = db_type;
@@ -926,5 +1007,27 @@
 			ext_args["bukrs"] = document.getElementById("p2p_ocel_company_code").value;
 			return ext_args;
 		}
+
+
+
+		function getProdparameters(ext_type) {
+			if (ext_type == "p2p_ocel") {
+				return getProdparametersOCEL(ext_type);
+			} else {
+				console.error("Only OCEL is supported!")
+			}
+		}
+
+
+		function getProdparametersOCEL(ext_type) {
+			let ext_args = {};
+			ext_args["min_extr_date"] = document.getElementById("prod_ocel_min_ext_date").value;
+			ext_args["gjahr"] = document.getElementById("prod_ocel_fiscal_year").value;
+			ext_args["mandt"] = document.getElementById("prod_ocel_client").value;
+			ext_args["bukrs"] = document.getElementById("prod_ocel_company_code").value;
+			return ext_args;
+		}
+
+
 	</script>
 </html>

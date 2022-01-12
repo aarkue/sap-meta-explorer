@@ -10,3 +10,5 @@ def apply(con, process, ext_type, ext_arg):
         return o2c_factory.apply(con, ext_type, ext_arg)
     elif process == "p2p":
         return p2p_factory.apply(con, ext_type, ext_arg)
+    elif process == "prod":
+        print("Production process requested!")
