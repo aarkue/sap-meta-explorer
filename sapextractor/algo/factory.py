@@ -1,6 +1,7 @@
 from sapextractor.algo.ap_ar import factory as ap_ar_factory
 from sapextractor.algo.o2c import factory as o2c_factory
 from sapextractor.algo.p2p import factory as p2p_factory
+from sapextractor.algo.prod import factory as prod_factory
 
 
 def apply(con, process, ext_type, ext_arg):
@@ -12,3 +13,4 @@ def apply(con, process, ext_type, ext_arg):
         return p2p_factory.apply(con, ext_type, ext_arg)
     elif process == "prod":
         print("Production process requested!")
+        return prod_factory.apply(con, ext_type, ext_arg)
