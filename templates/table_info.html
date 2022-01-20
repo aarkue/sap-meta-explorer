@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="static/jquery.min.js" type="text/javascript"></script>
+        <script src="static/bootstrap.min.js" type="text/javascript"></script>
+        <script src="static/FileSaver.min.js" type="text/javascript"></script>
+        <link rel="stylesheet" href="/static/simple.css">
+    </head>
+    <style>
+        :root {
+            --accent: #00e1ff;
+        }
+    </style>
+<script type="text/javascript">
+        function viewOtherTable(){
+            event.preventDefault();
+            const table_name = document.getElementById('table_name_input').value;
+            console.log(table_name)
+            if (table_name !== ""){
+                console.log("viewOtherTable")
+                document.location.href  = `/table/${encodeURIComponent(encodeURIComponent(table_name))}`
+            }else{
+                document.getElementById('table_name_input').focus();
+            }
+        }
+	</script>
+    <body>
+        <h1>Table Information</h1>
+        <form >
+            <b>View another table</b>
+            <br />
+            <input type="text" placeholder="Table name" id="table_name_input" list="tables" required>
+            <datalist id="tables">
+                {% for table in all_tables %}
+                <option value="{{table['TABNAME']}}">
+                    {% endfor %}
+            </datalist>
+            <input type="submit" onclick="viewOtherTable()" value="Go"/>
+        </form>
+        <h2>Search for: {{tablename}}</h2>
+        {% if table_info == None: %}
+            <h3>No table with that name found.</h3>
+        {% else %}
+            <b>{{ table_info['TABNAME'] }}</b>
+            <p>{{ table_info['DDTEXT'] }}</p>
+            <table>
+                <tr>
+                    <th>Index</th>
+                    <th>Key</th>
+                    <th style="text-align: center;">Name</th>
+                    <th>Check table</th>
+                    <th>Field length</th>
+                    <th>Description</th>
+                  </tr>
+                {% for field in fields_info %}
+                <tr>
+                    <th>{{field['POSITION']}}</th>
+                    <th style="text-align: center;">
+                    {% if field['KEYFLAG'] == "X": %}
+                        <input type="checkbox" disabled checked>
+                    {% else %}
+                        <input type="checkbox" disabled>
+                    {% endif %}
+                    </th>
+                    <th style="text-align: center;"><mark>{{field['FIELDNAME']}}</mark></th>
+                    <th>
+                        {% if field['CHECKTABLE'] == None or field['CHECKTABLE'] == '*' or field['CHECKTABLE'] == ' ': %}
+                            {{field['CHECKTABLE']}}
+                        {% else %}
+                        <a href={{escaped_table_names[field['CHECKTABLE']]}} title="{{field['CHECKTABLE_TEXT']}}">{{field['CHECKTABLE']}}</a>
+                        <br/>
+                        <span style="font-size: 0.8rem;">{{field['CHECKTABLE_TEXT']}}</span>
+                        {% endif %}
+                    </th>
+                    <th>{{field['LENG']}}</th>
+                    <th>{{field['DDTEXT']}}</th>
+                  </tr>
+                {% endfor %}
+              </table>
+              <details>
+              <summary>
+                  Other Table Attributes
+              </summary>
+              <table>
+                <tr>
+                    <th>Position</th>
+                    <th>Key field</th>
+                    <th>Name</th>
+                    <th>Check table</th>
+                    <th>Field length</th>
+                  </tr>
+                {% for field in other_fields %}
+                <tr>
+                    <th>{{field['POSITION']}}</th>
+                    <th style="text-align: center;">
+                    {% if field['KEYFLAG'] == "X": %}
+                        <input type="checkbox" disabled checked>
+                    {% else %}
+                        <input type="checkbox" disabled>
+                    {% endif %}
+                    </th>
+                    <th>{{field['FIELDNAME']}}</th>
+                    <th>{{field['CHECKTABLE']}}</th>
+                    <th>{{field['LENG']}}</th>
+                  </tr>
+                {% endfor %}
+              </table>
+            </details>
+
+        {% endif %}
+    </body>
+</html>

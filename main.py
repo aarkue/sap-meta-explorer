@@ -8,8 +8,9 @@ from sapextractor.database_connection import factory as database_factory
 import pm4py
 from pm4py.objects.dfg.filtering import dfg_filtering
 import uuid
-
-
+import sqlite3
+from urllib.parse import quote_plus
+from urllib.parse import unquote_plus
 app = Flask(__name__)
 CORS(app, expose_headers=["x-suggested-filename"])
 
@@ -67,6 +68,36 @@ def new_extractor():
     response = make_response(render_template('new_extractor.html'))
     return response
 
+
+def get_db_connection():
+    conn = sqlite3.connect('./sap-db.db')
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+@app.route('/table/<tablename>')
+def get_table_info(tablename):
+    tablename = unquote_plus(tablename).upper()
+    conn = get_db_connection()
+    all_tables = conn.execute("SELECT DISTINCT TABNAME FROM DD02T where instr(TABNAME, ?) > 0 LIMIT 100 ",(tablename,)).fetchall()
+    table_info = conn.execute('SELECT TABNAME, DDTEXT FROM DD02T WHERE TABNAME = ?',(tablename,)).fetchone()
+    fields_info = conn.execute('SELECT DD03L_DD03M.TABNAME, DD03L_DD03M.FIELDNAME, DD03L_DD03M.POSITION, DD03L_DD03M.KEYFLAG, DD03L_DD03M.LENG, DD03L_DD03M.CHECKTABLE, DD03L_DD03M.DDTEXT, DD02T.DDTEXT AS CHECKTABLE_TEXT FROM DD03L_DD03M LEFT JOIN DD02T ON DD03L_DD03M.CHECKTABLE = DD02T.TABNAME WHERE DD03L_DD03M.TABNAME = ? ORDER BY POSITION ASC',(tablename,)).fetchall()
+    escaped_table_names = {t['CHECKTABLE']:quote_plus(quote_plus(t['CHECKTABLE'])) for t in fields_info }
+    conn.close()    
+    response = make_response(render_template('table_info.html',tablename=tablename,table_info=table_info,fields_info=fields_info,other_fields=[],all_tables=all_tables,escaped_table_names=escaped_table_names))
+    return response
+
+@app.route('/table/<tablename>/relations')
+def get_table_relations(tablename):
+    tablename = unquote_plus(tablename).upper()
+    conn = get_db_connection()
+    relations = conn.execute("SELECT TABNAME, FIELDNAME, CHECKTABLE, DOMNAME FROM DD03L WHERE TABNAME = ? AND CHECKTABLE != ' ' AND CHECKTABLE != '*' LIMIT 150",(tablename,)).fetchall()
+    table_info = conn.execute('SELECT TABNAME, DDTEXT FROM DD02T WHERE TABNAME = ?',(tablename,)).fetchone()
+    fields_info = conn.execute('SELECT DD03L_DD03M.TABNAME, DD03L_DD03M.FIELDNAME, DD03L_DD03M.POSITION, DD03L_DD03M.KEYFLAG, DD03L_DD03M.LENG, DD03L_DD03M.CHECKTABLE, DD03L_DD03M.DDTEXT, DD02T.DDTEXT AS CHECKTABLE_TEXT FROM DD03L_DD03M LEFT JOIN DD02T ON DD03L_DD03M.CHECKTABLE = DD02T.TABNAME WHERE DD03L_DD03M.TABNAME = ? ORDER BY POSITION ASC',(tablename,)).fetchall()
+    escaped_table_names = {t['CHECKTABLE']:quote_plus(quote_plus(t['CHECKTABLE'])) for t in fields_info }
+    conn.close()    
+    response = make_response(render_template('table_relations.html',tablename=tablename,relations=relations,table_info=table_info,fields_info=fields_info,escaped_table_names=escaped_table_names))
+    return response
 
 @app.route("/newExtractorGetTableCount")
 def getTableCount():

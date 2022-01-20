@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="/static/jquery.min.js" type="text/javascript"></script>
+        <script src="/static/bootstrap.min.js" type="text/javascript"></script>
+        <script src="/static/FileSaver.min.js" type="text/javascript"></script>
+        <script src="/static/viz.js" type="text/javascript"></script>
+        <link rel="stylesheet" href="/static/simple.css">
+
+
+    </head>
+    <style>
+        :root {
+            --accent: #13c53f;
+        }
+    </style>
+<script type="text/javascript">
+        function viewOtherTablesRelations(){
+            event.preventDefault();
+            const table_name = document.getElementById('table_name_input').value;
+            console.log(table_name)
+            if (table_name !== ""){
+                console.log("viewOtherTable")
+                document.location.href  = getOtherTablesLink(table_name,true);
+            }else{
+                document.getElementById('table_name_input').focus();
+            }
+        }
+
+        function getOtherTablesLink(table,relations = false){
+            return `/table/${encodeURIComponent(encodeURIComponent(table))}${relations ? '/relations' : ''}`
+        }
+
+        function getDataFromTable(){
+            data = []
+            document.querySelectorAll('.entry').forEach((val,key) => {
+                data.push({
+                    tablename: val.getAttribute('data-tabname').replaceAll('/','_'),
+                    fieldname: val.getAttribute('data-fieldname').replaceAll('/','_'),
+                    checktable: val.getAttribute('data-checktable').replaceAll('/','_'),
+                    domname: val.getAttribute('data-domname').replaceAll('/','_'),
+                })
+            });
+            return data;
+        }
+
+        function drawERDiagram(){
+            const data = getDataFromTable();
+
+            const tablename = document.getElementById('tablename').getAttribute('data-tablename')
+
+            graph_graphviz = [` graph ER {
+                                rankdir = "LR"
+                                nodesep = 0
+                                bgcolor="transparent"
+                                node [shape=record]; `];
+            let tables =  [...new Set(data.map((el) => el.tablename))]
+            let check_tables =  [...new Set(data.map((el) => el.checktable))].filter((ct) => tables.indexOf(ct) < 0 )
+            console.log(check_tables)
+            tables.forEach((tab) => {
+                const fields = [...new Set(data.filter((el) => el.tablename === tab).map((el) => el.fieldname))]
+                let all_node_names = []
+                let nodes = []
+                fields.forEach((field) => {
+                    nodes.push(`{${tab}_${field} [label = "${field}" tooltip="${document.getElementById(tab+'_'+field).getAttribute('data-ddtext')}"]}`)
+                    all_node_names.push(`${tab}_${field}`)
+                })
+                // graph_graphviz.push(`"${tab}" [shape = "record" label = <<b>${tab}</b>| ${nodes.join(' | ')}>]`)
+                graph_graphviz.push(`subgraph cluster_${tab}{ label = <<B>${tab}</B>>; style = "bold" margin = 0  tooltip = "{{table_info['DDTEXT']}}" \n node [shape=rectangle height=0.5 margin=0 width=2];  ${nodes.join(' ')}}`)
+            })
+
+            check_tables.forEach((tab) => {
+                const fields = [...new Set(data.filter((el) => el.checktable === tab).map((el) => el.domname))]
+                let all_node_names = []
+                let nodes = []
+                fields.forEach((field) => {
+                    nodes.push(`{${tab}_${field} [label = "${field}"  color = "#666666" fontcolor = "#666666"]}`)
+                    all_node_names.push(`${tab}_${field}`)
+                })
+                // graph_graphviz.push(`"${tab}" [shape = "record" label = <<b>${tab}</b>| ${nodes.join(' | ')}>]`)
+                graph_graphviz.push(`subgraph cluster_${tab}{ label = <<B>${tab}</B>>; style = "bold" margin = 0 color = "#666666" fontcolor = "blue"  href="${getOtherTablesLink(tab,true)}" tooltip = "View Table ${tab}" \n node [shape=rectangle height=0.5 margin=0 width=2 color = "#666666" fontcolor = "#666666"];  ${nodes.join(' ')}}`)
+            })
+
+            data.forEach((row) => {
+                if (check_tables.indexOf(row.checktable)%2 === 0) {
+                    graph_graphviz.push(`${row.checktable}_${row.domname} -- ${row.tablename}_${row.fieldname}`)
+                }else{
+                    graph_graphviz.push(`${row.tablename}_${row.fieldname} -- ${row.checktable}_${row.domname}`)
+                }
+            })
+
+            // tables_unique.forEach((tab) => {
+            //     console.log(tab,data.filter((el) => el.tablename === tab))
+            //     const fields = [...new Set(data.filter((el) => el.tablename === tab).map((el) => el.fieldname))]
+            //     let all_node_names = []
+            //     let nodes = []
+            //     fields.forEach((field) => {
+            //         nodes.push(`${field}`)
+            //         all_node_names.push(`${tab}_${field}`)
+            //     })
+            //     // graph_graphviz.push(nodes.join(' '))
+                
+            //     graph_graphviz.push(`{${tab} [label = <{<b>${tab}</b>| ${nodes.join(' | ')} }>]}`)
+
+
+            //     const rel_fields = [...new Set(data.filter((el) => el.checktable === tab).map((el) => el.domname))]
+            //     let rel_nodes = ["node [shape=ellipse]; "]
+            //     rel_fields.forEach((field) => {
+            //         rel_nodes.push(`{node [label="${field}"] ${tab}_${field} }`)
+            //         all_node_names.push(`${tab}_${field}`)
+            //     })
+            //     // graph_graphviz.push(rel_nodes.join(' '))
+
+            //     // all_node_names.forEach((name) => {
+            //     //     graph_graphviz.push(`${name} -- ${tab} [len=2.00];`)
+            //     // })
+            // })
+            graph_graphviz.push(`label = "Table Relationships for SAP Table: ${tablename}";\nfontsize=20;}`);
+            graph_graphviz_str = graph_graphviz.join("\n");
+            console.log(graph_graphviz_str)
+            console.log(graph_graphviz)
+            let svgXml = Viz(graph_graphviz_str, { format: "svg"});
+			document.getElementById("graphvizGraphRepresentation").innerHTML = svgXml;
+
+            document.getElementById('downloadGraphviz').onclick = function(){
+                Viz.svgXmlToPngBase64(svgXml,undefined,function(err,data){
+                    console.log(data)
+                    var url = "data:image/png;base64," + data
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = tablename + "_relations.png";
+                    link.click();
+                    // fetch(url)
+                    // .then(res => res.blob())
+                    // .then(console.log)
+                    // document.body.appendChild(imageEl)
+                })
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function(event) { 
+            drawERDiagram();
+        });
+	</script>
+    <body>
+        <h1>Table Information</h1>
+        <form >
+            <b>View another tables relations</b>
+            <br />
+            <input type="text" placeholder="Table name" id="table_name_input" list="tables" required>
+            <input type="submit" onclick="viewOtherTablesRelations()" value="Go"/>
+        </form>
+        <p>Search for: <span id="tablename" data-tablename="{{tablename}}">{{tablename}}</span></p>
+        {% if relations == None: %}
+            <h3>No table with that name found.</h3>
+        {% else %}
+        <h2 style="margin-bottom: 0;">{{table_info['TABNAME']}}</h2>
+        <h3 style="margin-top: 0.5rem;">{{table_info['DDTEXT']}}</h3>
+        <details style="width: fit-content;" open>
+            <summary>Relations Diagram</summary>
+            <section>
+                <div id="graphvizGraphRepresentation"></div>
+                <!-- <button onclick="drawERDiagram()">Draw ER</button> -->
+                <button id="downloadGraphviz">Download as PNG</button>
+            </section>
+        </details>
+        <details style="width: fit-content;" open>
+            <summary>Table Information</summary>
+            <section>
+                <table>
+                    <tr>
+                        <th>Index</th>
+                        <th>Key</th>
+                        <th style="text-align: center;">Name</th>
+                        <th>Check table</th>
+                        <th>Field length</th>
+                        <th>Description</th>
+                      </tr>
+                    {% for field in fields_info %}
+                    <tr id="{{field['TABNAME']}}_{{field['FIELDNAME']}}" data-ddtext="{{field['DDTEXT']}}">
+                        <th>{{field['POSITION']}}</th>
+                        <th style="text-align: center;">
+                        {% if field['KEYFLAG'] == "X": %}
+                            <input type="checkbox" disabled checked>
+                        {% else %}
+                            <input type="checkbox" disabled>
+                        {% endif %}
+                        </th>
+                        <th style="text-align: center;"><mark>{{field['FIELDNAME']}}</mark></th>
+                        <th>
+                            {% if field['CHECKTABLE'] == None or field['CHECKTABLE'] == '*' or field['CHECKTABLE'] == ' ': %}
+                                {{field['CHECKTABLE']}}
+                            {% else %}
+                            <a href={{escaped_table_names[field['CHECKTABLE']]}} title="{{field['CHECKTABLE_TEXT']}}">{{field['CHECKTABLE']}}</a>
+                            <br/>
+                            <span style="font-size: 0.8rem;">{{field['CHECKTABLE_TEXT']}}</span>
+                            {% endif %}
+                        </th>
+                        <th>{{field['LENG']}}</th>
+                        <th>{{field['DDTEXT']}}</th>
+                      </tr>
+                    {% endfor %}
+                  </table>
+            </section>
+        </details>
+        <details style="width: fit-content;">
+            <summary>Relations Table</summary>
+            <section>
+                <b>{{ tablename }}</b>
+                <table>
+                    <tr>
+                        <th>Table</th>
+                        <th>Column</th>
+                        <th>Table 2</th>
+                        <th>Column 2</th>
+                      </tr>
+                    {% for relation in relations %}
+                    <tr class="entry" data-tabname="{{relation['TABNAME']}}" data-fieldname="{{relation['FIELDNAME']}}" data-checktable="{{relation['CHECKTABLE']}}" data-domname="{{relation['DOMNAME']}}">
+                        <th>{{relation['TABNAME']}}</th>
+                        <th><span class="fieldName">{{relation['FIELDNAME']}}</span></th>
+                        <th><span class="checkTable">{{relation['CHECKTABLE']}}</span></th>
+                        <th>{{relation['DOMNAME']}}</th>
+                      </tr>
+                    {% endfor %}
+                  </table>
+            </section>
+        </details>
+        {% endif %}
+    </body>
+</html>
