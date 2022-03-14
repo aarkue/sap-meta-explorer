@@ -9,11 +9,7 @@
 
 
     </head>
-    <style>
-        :root {
-            --accent: #13c53f;
-        }
-    </style>
+
 <script type="text/javascript">
         function viewOtherTablesRelations(){
             event.preventDefault();
@@ -143,15 +139,20 @@
         });
 	</script>
     <body>
-        <h1>Table Information</h1>
+        <nav>
+            <a href="/table"">Search by keyword</a>
+            <a href="/table/TABLE_NAME">Table info</a>
+            <a href="/table/TABLE_NAME/relations" style="border-color: var(--accent)">Table relations</a>
+    </nav>
+        <h1>Table Relations</h1>
         <form >
-            <b>View another tables relations</b>
+            <b>View relations of another table</b>
             <br />
             <input type="text" placeholder="Table name" id="table_name_input" list="tables" required>
             <input type="submit" onclick="viewOtherTablesRelations()" value="Go"/>
         </form>
         <p>Search for: <span id="tablename" data-tablename="{{tablename}}">{{tablename}}</span></p>
-        {% if relations == None: %}
+        {% if relations == None or relations|length < 1: %}
             <h3>No table with that name found.</h3>
         {% else %}
         <h2 style="margin-bottom: 0;">{{table_info['TABNAME']}}</h2>

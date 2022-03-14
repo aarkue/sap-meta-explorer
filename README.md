@@ -1,3 +1,27 @@
+# Web-tool to explore SAP meta-tables
+This web tool is based on [SAP Extractor](https://github.com/Javert899/sap-extractor) and provides a few additional pages to explore meta-information of the ERP system.
+For that, the corresponding meta-tables are first extracted from the SAP ERP system into an SQLite DB.
+The tables `DD02T`, `DD03L` and `DD03M` are of interest and should be dumped for the intended language (e.g., `WHERE DDLANGUAGE = 'EN'`).
+Additionally, a table or view of `DD03L` and `DD03M` called `DD03L_DD03M` should be created, which adds information on fields related tables (an example for that can be found below).
+
+Using the SQLite Dump allows usage continued usage, also offline. But with small modifications, a direct connection to the SAP ERP systems DB is, of course, also possible.
+
+
+```
+CREATE VIEW DD03M_DD03L
+AS
+  SELECT
+   *
+  FROM
+    DD03L
+   LEFT JOIN
+    DD03M
+   ON DD03M.TABNAME=DD03L.TABNAME AND DD03M.FIELDNAME=DD03L.FIELDNAME
+```
+
+# SAP Extractor
+Below you can find the original info for the rest of the functionality, which was presented in https://arxiv.org/abs/2110.03467.
+See the original repository https://github.com/Javert899/sap-extractor for additional and up-to-date information.
 # Process Mining SAP ERP ECC extractor (Python)
 
 This project implements some connectors for the mainstream processes in SAP ERP ECC.

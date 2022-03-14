@@ -25,6 +25,11 @@
         }
 	</script>
     <body>
+        <nav>
+            <a href="/table"">Search by keyword</a>
+            <a href="/table/TABLE_NAME" style="border-color: var(--accent)">Table info</a>
+            <a href="/table/TABLE_NAME/relations">Table relations</a>
+    </nav>
         <h1>Table Information</h1>
         <form >
             <b>View another table</b>
@@ -49,6 +54,7 @@
                     <th>Key</th>
                     <th style="text-align: center;">Name</th>
                     <th>Check table</th>
+                    <th>Domain name</th>
                     <th>Field length</th>
                     <th>Description</th>
                   </tr>
@@ -72,6 +78,7 @@
                         <span style="font-size: 0.8rem;">{{field['CHECKTABLE_TEXT']}}</span>
                         {% endif %}
                     </th>
+                    <th>{{field['DOMNAME']}}</th>
                     <th>{{field['LENG']}}</th>
                     <th>{{field['DDTEXT']}}</th>
                   </tr>

@@ -74,6 +74,19 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
+@app.route('/table')
+def get_table():
+    query = ""
+    tables = []
+    escaped_tables = []
+    if request.args.get("query") != None:
+        query = unquote_plus(request.args.get("query"))
+        conn = get_db_connection()
+        tables = conn.execute("SELECT DISTINCT TABNAME, DDTEXT FROM DD02T where instr(DDTEXT, ?) > 0 OR instr(TABNAME,?) > 0 ORDER BY TABNAME LIMIT 1000 ",(query,query)).fetchall()
+        escaped_tables = {t['TABNAME']:quote_plus(quote_plus(t['TABNAME'])) for t in tables }
+
+    response = make_response(render_template('table.html',query=query,tables=tables,escaped_tables=escaped_tables))
+    return response;
 
 @app.route('/table/<tablename>')
 def get_table_info(tablename):
@@ -81,7 +94,7 @@ def get_table_info(tablename):
     conn = get_db_connection()
     all_tables = conn.execute("SELECT DISTINCT TABNAME FROM DD02T where instr(TABNAME, ?) > 0 LIMIT 100 ",(tablename,)).fetchall()
     table_info = conn.execute('SELECT TABNAME, DDTEXT FROM DD02T WHERE TABNAME = ?',(tablename,)).fetchone()
-    fields_info = conn.execute('SELECT DD03L_DD03M.TABNAME, DD03L_DD03M.FIELDNAME, DD03L_DD03M.POSITION, DD03L_DD03M.KEYFLAG, DD03L_DD03M.LENG, DD03L_DD03M.CHECKTABLE, DD03L_DD03M.DDTEXT, DD02T.DDTEXT AS CHECKTABLE_TEXT FROM DD03L_DD03M LEFT JOIN DD02T ON DD03L_DD03M.CHECKTABLE = DD02T.TABNAME WHERE DD03L_DD03M.TABNAME = ? ORDER BY POSITION ASC',(tablename,)).fetchall()
+    fields_info = conn.execute('SELECT DD03L_DD03M.TABNAME, DD03L_DD03M.FIELDNAME, DD03L_DD03M.POSITION, DD03L_DD03M.DOMNAME AS DOMNAME, DD03L_DD03M.KEYFLAG, DD03L_DD03M.LENG, DD03L_DD03M.CHECKTABLE, DD03L_DD03M.DDTEXT, DD02T.DDTEXT AS CHECKTABLE_TEXT FROM DD03L_DD03M LEFT JOIN DD02T ON DD03L_DD03M.CHECKTABLE = DD02T.TABNAME WHERE DD03L_DD03M.TABNAME = ? ORDER BY POSITION ASC',(tablename,)).fetchall()
     escaped_table_names = {t['CHECKTABLE']:quote_plus(quote_plus(t['CHECKTABLE'])) for t in fields_info }
     conn.close()    
     response = make_response(render_template('table_info.html',tablename=tablename,table_info=table_info,fields_info=fields_info,other_fields=[],all_tables=all_tables,escaped_table_names=escaped_table_names))
@@ -208,7 +221,7 @@ def expandTables():
         tables_count[x] = dbstattora[x] if x in dbstattora else 1
 
     ret = {"expanded_tables": sorted(list(tables)), "types": {x: extract_fields.classify_table(c, x, tables) for x in tables}, "tables_count": tables_count, "initial_tabnames": tabnames, "edges": edges}
-    print(ret)
+
     return ret
 
 

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="static/jquery.min.js" type="text/javascript"></script>
+        <script src="static/bootstrap.min.js" type="text/javascript"></script>
+        <script src="static/FileSaver.min.js" type="text/javascript"></script>
+        <link rel="stylesheet" href="/static/simple.css">
+    </head>
+    <style>
+        :root {
+            --accent: #00e1ff;
+        }
+    </style>
+<script type="text/javascript">
+        function searchKeyword(){
+            event.preventDefault();
+            const search_query = document.getElementById('search_input').value;
+            console.log(search_query)
+            if (search_query !== ""){
+                console.log("viewOtherTable")
+                document.location.href  = `?query=${encodeURIComponent(encodeURIComponent(search_query))}`
+            }else{
+                document.getElementById('search_input').focus();
+            }
+        }
+	</script>
+    <body>
+        <nav>
+                <a href="/table"style="border-color: var(--accent)">Search by keyword</a>
+                <a href="/table/TABLE_NAME">Table info</a>
+                <a href="/table/TABLE_NAME/relations">Table relations</a>
+        </nav>
+            <h1>Table Search</h1>
+        <form >
+            <b>Search for a table</b>
+            <br />
+            <input type="text" placeholder="Search keywords" id="search_input" list="tables" required>
+            <input type="submit" onclick="searchKeyword()" value="Go"/>
+        </form>
+        {% if query == None or query == '' %}
+        {% else %}
+        <h2>Search for: {{query}}</h2>
+        {% if tables == None or tables|length < 1: %}
+            <h3>No tables for that query found.</h3>
+        {% else %}
+        <table>
+            <tr>
+                <th>Tablename</th>
+                <th>Description</th>
+              </tr>
+            {% for table in tables %}
+            <tr>
+                <th>
+                    <a href=/table/{{escaped_tables[table['TABNAME']]}} title="{{table['TABNAME']}}">{{table['TABNAME']}}</a>
+                </th>
+                <th>{{table['DDTEXT']}}</th>
+              </tr>
+            {% endfor %}
+          </table>
+        {% endif %}
+        {% endif %}
+    </body>
+</html>
