@@ -1,4 +1,5 @@
-# Web-tool to explore SAP meta-tables
+# SAP Meta-Explorer
+## Web-tool to explore SAP meta-tables
 This web tool is based on [SAP Extractor](https://github.com/Javert899/sap-extractor) and provides a few additional pages to explore meta-information of the ERP system.
 For that, the corresponding meta-tables are first extracted from the SAP ERP system into an SQLite DB.
 The tables `DD02T`, `DD03L` and `DD03M` are of interest and should be dumped for the intended language (e.g., `WHERE DDLANGUAGE = 'EN'`).
