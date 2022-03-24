@@ -5,7 +5,7 @@ For that, the corresponding meta-tables are first extracted from the SAP ERP sys
 The tables `DD02T`, `DD03L` and `DD03M` are of interest and should be dumped for the intended language (e.g., `WHERE DDLANGUAGE = 'EN'`).
 Additionally, a table or view of `DD03L` and `DD03M` called `DD03L_DD03M` should be created, which adds information on fields related tables (an example for that can be found below).
 
-Using the SQLite Dump allows usage continued usage, also offline. But with small modifications, a direct connection to the SAP ERP systems DB is, of course, also possible.
+Using the SQLite Dump allows continued usage, also offline. But with small modifications, a direct connection to the SAP ERP systems DB is, of course, also possible.
 
 
 ```
