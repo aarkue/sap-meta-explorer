@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="static/jquery.min.js" type="text/javascript"></script>
+        <script src="static/bootstrap.min.js" type="text/javascript"></script>
+        <script src="static/FileSaver.min.js" type="text/javascript"></script>
+        <link rel="stylesheet" href="/static/simple.css">
+        <style>
+
+        </style>
+    </head>
+	<script type="text/javascript">
+        function viewOtherTable(){
+            console.log("viewOtherTable")
+            document.location.href  = `/table/${document.getElementById('table_name_input').value}`
+        }
+	</script>
+    <body>
+        <h1>Table Information</h1>
+        <form>
+            <b>View another table</b>
+            <br />
+            <input type="text" placeholder="Table name" id="table_name_input" list="tables">
+            <button onclick="viewOtherTable()" type="button">Go</button>
+        </form>
+
+        <a href="/tables/from/{{last_tablename}}">Next</a>
+        <h2>Search for: {{tablename}}</h2>
+        <ul>
+            {% for table in tables %}
+            
+            <li>
+                {{table['TABNAME']}}
+            </li>
+            {% endfor %}
+        </ul>
+    </body>
+</html>

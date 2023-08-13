@@ -141,8 +141,8 @@
     <body>
         <nav>
             <a href="/table"">Search by keyword</a>
-            <a href="/table/TABLE_NAME">Table info</a>
-            <a href="/table/TABLE_NAME/relations" style="border-color: var(--accent)">Table relations</a>
+            <a href="/table/{{tablename}}">Table info</a>
+            <a href="/table/{{tablename}}/relations" style="border-color: var(--accent)">Table relations</a>
     </nav>
         <h1>Table Relations</h1>
         <form >
@@ -152,11 +152,12 @@
             <input type="submit" onclick="viewOtherTablesRelations()" value="Go"/>
         </form>
         <p>Search for: <span id="tablename" data-tablename="{{tablename}}">{{tablename}}</span></p>
-        {% if relations == None or relations|length < 1: %}
+        {% if relations == None %}
             <h3>No table with that name found.</h3>
         {% else %}
         <h2 style="margin-bottom: 0;">{{table_info['TABNAME']}}</h2>
         <h3 style="margin-top: 0.5rem;">{{table_info['DDTEXT']}}</h3>
+        <a href="/table/{{tablename}}">View general table info</a>
         <details style="width: fit-content;" open>
             <summary>Relations Diagram</summary>
             <section>
@@ -192,7 +193,7 @@
                             {% if field['CHECKTABLE'] == None or field['CHECKTABLE'] == '*' or field['CHECKTABLE'] == ' ': %}
                                 {{field['CHECKTABLE']}}
                             {% else %}
-                            <a href={{escaped_table_names[field['CHECKTABLE']]}} title="{{field['CHECKTABLE_TEXT']}}">{{field['CHECKTABLE']}}</a>
+                            <a href=/table/{{escaped_table_names[field['CHECKTABLE']]}} title="{{field['CHECKTABLE_TEXT']}}">{{field['CHECKTABLE']}}</a>
                             <br/>
                             <span style="font-size: 0.8rem;">{{field['CHECKTABLE_TEXT']}}</span>
                             {% endif %}
